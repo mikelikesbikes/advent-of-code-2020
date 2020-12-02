@@ -1,10 +1,10 @@
-def read_lines(filename = File.expand_path("input.txt", __dir__))
-  File.read(filename).split("\n")
+def read_input(filename = File.expand_path("input.txt", __dir__))
+  File.read(filename)
 end
 
 def parse_input(input)
-  input.map do |s|
-    policy, password = s.split(": ")
+  input.split("\n").map do |line|
+    policy, password = line.split(": ")
     range, c = policy.split(" ")
     b, e = range.split("-")
     [b.to_i, e.to_i, c, password]
@@ -27,7 +27,7 @@ end
 
 return unless $PROGRAM_NAME == __FILE__
 
-passwords = parse_input(read_lines)
+passwords = parse_input(read_input)
 
 puts valid_passwords(passwords).length
 puts valid_passwords_new(passwords).length

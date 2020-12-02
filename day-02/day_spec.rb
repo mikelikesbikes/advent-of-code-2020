@@ -3,7 +3,7 @@ require_relative "./day"
 
 describe "Day1" do
   let(:input) do
-    <<~INPUT.split("\n")
+    parse_input(<<~INPUT)
       1-3 a: abcde
       1-3 b: cdefg
       2-9 c: ccccccccc
@@ -11,12 +11,10 @@ describe "Day1" do
   end
 
   it "should validate ranged passwords" do
-    passwords = parse_input(input)
-    expect(valid_passwords(passwords).length).to eq 2
+    expect(valid_passwords(input).length).to eq 2
   end
 
   it "should validate positional passwords" do
-    passwords = parse_input(input)
-    expect(valid_passwords_new(passwords).length).to eq 1
+    expect(valid_passwords_new(input).length).to eq 1
   end
 end
