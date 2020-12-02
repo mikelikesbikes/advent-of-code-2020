@@ -1,9 +1,9 @@
 require "rspec"
 require_relative "./day"
 
-describe "Day1" do
+describe "day" do
   let(:input) do
-    <<~INPUT.split("\n").map(&:to_i)
+    parse_input(<<~INPUT)
     INPUT HERE
     INPUT
   end

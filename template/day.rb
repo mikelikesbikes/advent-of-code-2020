@@ -1,6 +1,13 @@
-def read_lines(filename = File.expand_path("input.txt", __dir__))
-  File.read(filename).split("\n").map(&:to_i)
+def read_input(filename = File.expand_path("input.txt", __dir__))
+  File.read(filename)
 end
+
+def parse_input(input)
+  input.split("\n").map do |line|
+    Integer(line)
+  end
+end
+
 
 ### CODE HERE ###
 
