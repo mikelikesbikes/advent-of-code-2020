@@ -13,6 +13,6 @@ end
 
 return unless $PROGRAM_NAME == __FILE__
 
-input = read_lines
+input = parse_input(read_input)
 
 ### RUN STUFF HERE ###
