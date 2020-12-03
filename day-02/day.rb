@@ -12,16 +12,14 @@ def parse_input(input)
 end
 
 def valid_passwords(passwords)
-  passwords.filter do |b, e, c, password|
-    count = password.chars.count { |l| l == c }
-    count >= b && count <= e
+  passwords.count do |b, e, c, password|
+    password.count(c).between?(b, e)
   end
 end
 
 def valid_passwords_new(passwords)
-  passwords.filter do |b, e, c, password|
-    c1, c2 = password[b-1], password[e-1]
-    (c1 == c || c2 == c) && c1 != c2
+  passwords.count do |b, e, c, password|
+    (password[b-1] == c) ^ (password[e-1] == c)
   end
 end
 
@@ -29,5 +27,5 @@ return unless $PROGRAM_NAME == __FILE__
 
 passwords = parse_input(read_input)
 
-puts valid_passwords(passwords).length
-puts valid_passwords_new(passwords).length
+puts valid_passwords(passwords)
+puts valid_passwords_new(passwords)

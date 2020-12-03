@@ -11,10 +11,10 @@ describe "Day1" do
   end
 
   it "should validate ranged passwords" do
-    expect(valid_passwords(input).length).to eq 2
+    expect(valid_passwords(input)).to eq 2
   end
 
   it "should validate positional passwords" do
-    expect(valid_passwords_new(input).length).to eq 1
+    expect(valid_passwords_new(input)).to eq 1
   end
 end
