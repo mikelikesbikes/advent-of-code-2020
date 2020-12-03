@@ -3,7 +3,17 @@ def read_lines(filename = File.expand_path("input.txt", __dir__))
 end
 
 def find_tuple(input, size, target_sum)
+  if size == 2
+    return find_pair(input, target_sum)
+  end
   input.permutation(size).find { |v| v.sum == target_sum }.reduce(:*)
+end
+
+def find_pair(input, target_sum)
+  nums = Set.new(input)
+  input.each do |v|
+    return v * (target_sum - v) if nums.include?(target_sum - v)
+  end
 end
 
 return unless $PROGRAM_NAME == __FILE__
