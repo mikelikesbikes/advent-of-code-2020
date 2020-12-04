@@ -10,21 +10,27 @@ def parse_input(input)
   end
 end
 
+VALIDATORS = {
+  "byr" => -> (value) { Integer(value).between?(1920, 2002) },
+  "iyr" => -> (value) { Integer(value).between?(2010, 2020) },
+  "eyr" => -> (value) { Integer(value).between?(2020, 2030) },
+  "hgt" => -> (value) {
+    case value[-2..-1]
+    when "in" then Integer(value[0..-3]).between?(59, 76)
+    when "cm" then Integer(value[0..-3]).between?(150, 193)
+    else false
+    end
+  },
+  "hcl" => -> (value) { value.match?(/^#[0-9a-f]{6}$/) },
+  "ecl" => -> (value) { value.match?(/^(amb|blu|brn|gry|grn|hzl|oth)$/) },
+  "pid" => -> (value) { value.match?(/^[0-9]{9}$/) },
+}
+VALIDATORS.default = -> (_) { false }
 def valid_passports(passports, strict: true)
   passports.count do |p|
-    [
-      p.key?("byr") && (!strict || Integer(p["byr"]).between?(1920, 2002)),
-      p.key?("iyr") && (!strict || Integer(p["iyr"]).between?(2010, 2020)),
-      p.key?("eyr") && (!strict || Integer(p["eyr"]).between?(2020, 2030)),
-      p.key?("hgt") && (!strict || (case p["hgt"][-2..-1]
-                                    when "in" then Integer(p["hgt"][0..-3]).between?(59, 76)
-                                    when "cm" then Integer(p["hgt"][0..-3]).between?(150, 193)
-                                    else false
-                                    end)),
-      p.key?("hcl") && (!strict || p["hcl"].match?(/^#[0-9a-f]{6}$/)),
-      p.key?("ecl") && (!strict || p["ecl"].match?(/^(amb|blu|brn|gry|grn|hzl|oth)$/)),
-      p.key?("pid") && (!strict || p["pid"].match?(/^[0-9]{9}$/)),
-    ].all?
+    VALIDATORS.all? do |field, validator|
+      p.key?(field) && (!strict || validator.call(p[field]))
+    end
   end
 end
 
