@@ -1,5 +1,10 @@
-def read_input(filename = File.expand_path("input.txt", __dir__))
-  File.read(filename)
+def read_input(filename = "input.txt")
+  if !STDIN.tty?
+    ARGF.read
+  else
+    filename = File.expand_path(ARGV[0] || filename, __dir__)
+    File.read(filename)
+  end
 end
 
 def parse_input(input)
