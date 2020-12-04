@@ -39,10 +39,10 @@ describe "day" do
 
 
   it "should ..." do
-    expect(valid_passports(input)).to eq 2
+    expect(valid_passports(input, strict: false)).to eq 2
   end
 
   it "should valid" do
-    expect(strict_valid_passports(p2_input)).to eq 4
+    expect(valid_passports(p2_input)).to eq 4
   end
 end
