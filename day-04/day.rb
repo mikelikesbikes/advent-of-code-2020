@@ -13,12 +13,16 @@ end
 def valid_passports(passports, strict: true)
   passports.count do |p|
     [
-      p.key?("byr") && (!strict || p["byr"].to_i.between?(1920, 2002)),
-      p.key?("iyr") && (!strict || p["iyr"].to_i.between?(2010, 2020)),
-      p.key?("eyr") && (!strict || p["eyr"].to_i.between?(2020, 2030)),
-      p.key?("hgt") && (!strict || (p["hgt"][-2..-1] == "in" ? p["hgt"].to_i.between?(59, 76) : p["hgt"].to_i.between?(150, 193))),
+      p.key?("byr") && (!strict || Integer(p["byr"]).between?(1920, 2002)),
+      p.key?("iyr") && (!strict || Integer(p["iyr"]).between?(2010, 2020)),
+      p.key?("eyr") && (!strict || Integer(p["eyr"]).between?(2020, 2030)),
+      p.key?("hgt") && (!strict || (case p["hgt"][-2..-1]
+                                    when "in" then Integer(p["hgt"][0..-3]).between?(59, 76)
+                                    when "cm" then Integer(p["hgt"][0..-3]).between?(150, 193)
+                                    else false
+                                    end)),
       p.key?("hcl") && (!strict || p["hcl"].match?(/^#[0-9a-f]{6}$/)),
-      p.key?("ecl") && (!strict || %w[amb blu brn gry grn hzl oth].include?(p["ecl"])),
+      p.key?("ecl") && (!strict || p["ecl"].match?(/^(amb|blu|brn|gry|grn|hzl|oth)$/)),
       p.key?("pid") && (!strict || p["pid"].match?(/^[0-9]{9}$/)),
     ].all?
   end
