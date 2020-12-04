@@ -4,9 +4,7 @@ end
 
 def parse_input(input)
   input.split("\n\n").map do |p|
-    p.split(/\s+/).each_with_object({}) do |d, h|
-      h.store(*d.split(":"))
-    end
+    Hash[p.scan(/(\w+):(\S+)/)]
   end
 end
 
