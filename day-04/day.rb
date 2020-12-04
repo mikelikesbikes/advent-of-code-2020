@@ -10,27 +10,28 @@ def parse_input(input)
   end
 end
 
+def validate(&block)
+  -> (value, validate_value) { value && (!validate_value || block.call(value)) }
+end
 VALIDATORS = {
-  "byr" => -> (value) { Integer(value).between?(1920, 2002) },
-  "iyr" => -> (value) { Integer(value).between?(2010, 2020) },
-  "eyr" => -> (value) { Integer(value).between?(2020, 2030) },
-  "hgt" => -> (value) {
-    case value[-2..-1]
-    when "in" then Integer(value[0..-3]).between?(59, 76)
-    when "cm" then Integer(value[0..-3]).between?(150, 193)
+  "byr" => validate { |v| Integer(v).between?(1920, 2002) },
+  "iyr" => validate { |v| Integer(v).between?(2010, 2020) },
+  "eyr" => validate { |v| Integer(v).between?(2020, 2030) },
+  "hgt" => validate { |v|
+    case v[-2..-1]
+    when "in" then Integer(v[0..-3]).between?(59, 76)
+    when "cm" then Integer(v[0..-3]).between?(150, 193)
     else false
     end
   },
-  "hcl" => -> (value) { value.match?(/^#[0-9a-f]{6}$/) },
-  "ecl" => -> (value) { value.match?(/^(amb|blu|brn|gry|grn|hzl|oth)$/) },
-  "pid" => -> (value) { value.match?(/^[0-9]{9}$/) },
+  "hcl" => validate { |v| v.match?(/^#[0-9a-f]{6}$/) },
+  "ecl" => validate { |v| v.match?(/^(amb|blu|brn|gry|grn|hzl|oth)$/) },
+  "pid" => validate { |v| v.match?(/^[0-9]{9}$/) },
 }
 VALIDATORS.default = -> (_) { false }
 def valid_passports(passports, strict: true)
   passports.count do |p|
-    VALIDATORS.all? do |field, validator|
-      p.key?(field) && (!strict || validator.call(p[field]))
-    end
+    VALIDATORS.all? { |field, validator| validator.call(p[field], strict) }
   end
 end
 
