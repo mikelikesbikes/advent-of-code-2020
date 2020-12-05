@@ -19,14 +19,22 @@ def max_seat_id(seats)
   seats.max
 end
 
+def find_seat(seats)
+  seats.each_with_object(Set.new) do |seat, s|
+    if s.member?(seat - 2)
+      return seat - 1
+    elsif s.member?(seat + 2)
+      return seat + 1
+    else
+      s << seat
+    end
+  end
+end
+
 return unless $PROGRAM_NAME == __FILE__
 
 input = parse_input(read_input)
 
 ### RUN STUFF HERE ###
 puts max_seat_id(input)
-input.sort.each_cons(2) do |a, b|
-  if (b - a) == 2
-    puts b - 1
-  end
-end
+puts find_seat(input)
