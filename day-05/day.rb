@@ -1,3 +1,5 @@
+require "set"
+
 def read_input(filename = "input.txt")
   if !STDIN.tty?
     ARGF.read
@@ -9,7 +11,7 @@ end
 
 def parse_input(input)
   input.split("\n").map do |line|
-    line.gsub("F", "0").gsub("B", "1").gsub("R", "1").gsub("L", "0").to_i(2)
+    line.gsub(/[FL]/, "0").gsub(/[BR]/, "1").to_i(2)
   end
 end
 
