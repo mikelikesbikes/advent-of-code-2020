@@ -8,18 +8,18 @@ def read_input(filename = "input.txt")
 end
 
 def parse_input(input)
-  input.split("\n\n").map { |line| line.split("\n") }
+  input.split("\n\n").map { |line| line.split("\n").map(&:chars) }
 end
 
 def uniq_question_count(input)
   input.sum do |group|
-    group.join.chars.uniq.length
+    group.reduce(&:|).length
   end
 end
 
 def all_question_count(input)
   input.sum do |group|
-    group.map(&:chars).reduce(&:&).length
+    group.reduce(&:&).length
   end
 end
 
