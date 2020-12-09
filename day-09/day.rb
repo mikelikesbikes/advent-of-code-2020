@@ -22,17 +22,19 @@ def find_first_invalid_xmas_code(input, len)
   end
 end
 
+MAX_INT = 2 ** ([42].pack('i').size * 8) - 1
 def find_weakness(input, len)
   target = find_first_invalid_xmas_code(input, len)
   i = 0
   while i < input.length
-    k = 0
-    while input[i..k].sum < target
+    k, sum, min, max = i, 0, MAX_INT, 0
+    begin
+      sum += input[k]
+      min = input[k] if input[k] < min
+      max = input[k] if input[k] > max
       k += 1
-    end
-    if input[i..k].sum == target
-      return input[i..k].minmax.sum
-    end
+    end while sum < target
+    return min + max if sum == target
     i += 1
   end
 end
