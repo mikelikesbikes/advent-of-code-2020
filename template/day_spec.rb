@@ -8,6 +8,10 @@ describe "day" do
     INPUT
   end
 
+  let(:actual_input) do
+    parse_input(File.read("input.txt"))
+  end
+
   it "should ..." do
   end
 end
