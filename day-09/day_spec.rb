@@ -26,12 +26,15 @@ describe "day" do
       576
     INPUT
   end
+  let(:actual_input) { parse_input(File.read("input.txt")) }
 
   it "should find the first invalid XMAS code" do
     expect(find_first_invalid_xmas_code(input, 5)).to eq 127
+    expect(find_first_invalid_xmas_code(actual_input, 25)).to eq 776203571
   end
 
   it "should find the encryption weakness" do
     expect(find_weakness(input, 5)).to eq 62
+    expect(find_weakness(actual_input, 25)).to eq 104800569
   end
 end
