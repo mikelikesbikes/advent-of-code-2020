@@ -1,3 +1,5 @@
+require "set"
+
 def read_lines(filename = File.expand_path("input.txt", __dir__))
   File.read(filename).split("\n").map(&:to_i)
 end
