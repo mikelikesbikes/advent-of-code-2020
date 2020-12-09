@@ -39,14 +39,12 @@ end
 def find_weakness(input, target)
   i = 0
   while i < input.length - 1
-    k, sum, min, max = i, input[i], input[i], input[i]
+    k, sum, = i, input[i]
     while sum < target
       k += 1
       sum += input[k]
-      min = input[k] if input[k] < min
-      max = input[k] if input[k] > max
     end
-    return min + max if sum == target
+    return input[i...k].minmax.reduce(&:+) if sum == target
     i += 1
   end
 end
@@ -88,5 +86,7 @@ input = parse_input(read_input)
 target = find_first_invalid_xmas_code(input, 25)
 puts target
 require "benchmark"
-puts Benchmark.measure("find_weakness") { puts find_weakness(input, target) }
-puts Benchmark.measure("wobbling_window") { puts wobbling_sliding_window(input, target) }
+Benchmark.bm do |b|
+  b.report("find_weakness: ") { puts find_weakness(input, target) }
+  b.report("wobbling_window: ") { puts wobbling_sliding_window(input, target) }
+end
