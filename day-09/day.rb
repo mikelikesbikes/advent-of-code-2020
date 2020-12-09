@@ -36,8 +36,7 @@ def valid_xmas_code?(input, len, i)
   false
 end
 
-def find_weakness(input, len)
-  target = find_first_invalid_xmas_code(input, len)
+def find_weakness(input, target)
   i = 0
   while i < input.length - 1
     k, sum, min, max = i, input[i], input[i], input[i]
@@ -52,10 +51,42 @@ def find_weakness(input, len)
   end
 end
 
+def wobbling_sliding_window(input, target)
+  i, size = 0, 2
+  sum = input[i] + input[i + 1]
+  while i < input.length
+    # shrink size down to 2 OR sum > target
+    while sum > target && size > 2
+      sum -= input[i + size - 1]
+      size -= 1
+    end
+
+    # expand size up until we run out of inputs OR sum < target
+    while sum < target && (i + size - 1) < input.length
+      sum += input[i + size]
+      size += 1
+    end
+
+    # return sum of min and max in the window
+    if sum == target
+      return input[i, size].minmax.reduce(&:+)
+    end
+
+    # advance the window forward removing the first value
+    sum -= input[i]
+    size -= 1
+    i += 1
+  end
+end
+
 return unless $PROGRAM_NAME == __FILE__
 
 input = parse_input(read_input)
 
 ### RUN STUFF HERE ###
-puts find_first_invalid_xmas_code(input, 25)
-puts find_weakness(input, 25)
+
+target = find_first_invalid_xmas_code(input, 25)
+puts target
+require "benchmark"
+puts Benchmark.measure("find_weakness") { puts find_weakness(input, target) }
+puts Benchmark.measure("wobbling_window") { puts wobbling_sliding_window(input, target) }

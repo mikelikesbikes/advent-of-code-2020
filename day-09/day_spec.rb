@@ -34,7 +34,9 @@ describe "day" do
   end
 
   it "should find the encryption weakness" do
-    expect(find_weakness(input, 5)).to eq 62
-    expect(find_weakness(actual_input, 25)).to eq 104800569
+    expect(find_weakness(input, 127)).to eq 62
+    expect(find_weakness(actual_input, 776203571)).to eq 104800569
+    expect(wobbling_sliding_window(input, 127)).to eq 62
+    expect(wobbling_sliding_window(actual_input, 776203571)).to eq 104800569
   end
 end
