@@ -8,8 +8,10 @@ def read_input(filename = "input.txt")
 end
 
 def parse_input(input)
-  input.split("\n").map do |line|
-    line.chars
+  input.split("\n").each_with_object({}).with_index do |(row, h), y|
+    row.chars.each_with_index do |c, x|
+      h[[x, y]] = c
+    end
   end
 end
 
@@ -25,47 +27,46 @@ DIRECTIONS = [
   [1, 1]
 ]
 def occupied_adjacent(input, x, y)
-  DIRECTIONS.count do |dx,dy|
-    w, z = x + dx, y + dy
-    w.between?(0, input.first.length - 1) && z.between?(0, input.length - 1) && input[z][w] == "#"
-  end
+  DIRECTIONS.count { |dx,dy| input[[x + dx, y + dy]] == "#" }
 end
 
 def occupied_in_all_directions(input, x, y)
+  p = [nil, nil]
   DIRECTIONS.count do |dx, dy|
-    w, z, occupied = x + dx, y + dy, nil
-    while w.between?(0, input.first.length - 1) && z.between?(0, input.length - 1) && occupied != "#" && occupied != "L"
-      occupied = input[z][w]
-      w += dx
-      z += dy end
+    p[0] = x + dx
+    p[1] = y + dy
+    occupied = nil
+    while input.key?(p) && occupied != "#" && occupied != "L"
+      occupied = input[p]
+      p[0] += dx
+      p[1] += dy
+    end
     occupied == "#"
   end
 end
 
 PART_1_RULES = {
-  "." => -> (_) { "." },
-  "L" => -> (neighbors) { neighbors == 0 ? "#" : "L" },
-  "#" => -> (neighbors) { neighbors >= 4 ? "L" : "#" }
+  "." => -> (*_) { "." },
+  "L" => -> (o, i, k) { o.call(i, *k) == 0 ? "#" : "L" },
+  "#" => -> (o, i, k) { o.call(i, *k) >= 4 ? "L" : "#" }
 }
 
 PART_2_RULES = {
-  "." => -> (_) { "." },
-  "L" => -> (neighbors) { neighbors == 0 ? "#" : "L" },
-  "#" => -> (neighbors) { neighbors >= 5 ? "L" : "#" }
+  "." => -> (*_) { "." },
+  "L" => -> (o, i, k) { o.call(i, *k) == 0 ? "#" : "L" },
+  "#" => -> (o, i, k) { o.call(i, *k) >= 5 ? "L" : "#" }
 }
 
 def stabilize_seating(input, occupied, rules)
   begin
     changed = false
-    input = input.map.with_index do |row, y|
-      row.map.with_index do |v, x|
-        rules[v].call(occupied.call(input, x, y)).tap do |new_v|
-          changed ||= v != new_v
-        end
+    input = input.each_with_object({}) do |(k, v), h|
+      h[k] = rules[v].call(occupied, input, k).tap do |new_v|
+        changed ||= v != new_v
       end
     end
   end while changed
-  input.flatten.count("#")
+  input.count { |_, v| v == "#" }
 end
 
 
