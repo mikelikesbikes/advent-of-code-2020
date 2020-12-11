@@ -22,10 +22,10 @@ describe "day" do
   end
 
   it "should ..." do
-    expect(stabilize_seating(input)).to eq 37
+    expect(stabilize_seating(input, method(:occupied_adjacent), PART_1_RULES)).to eq 37
   end
 
   it "should calculate seating with line of sight rules" do
-    expect(stabilize_seating_los(input)).to eq 26
+    expect(stabilize_seating(input, method(:occupied_in_all_directions), PART_2_RULES)).to eq 26
   end
 end
