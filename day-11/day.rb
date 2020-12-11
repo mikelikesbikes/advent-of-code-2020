@@ -14,39 +14,32 @@ def parse_input(input)
 end
 
 ### CODE HERE ###
+DIRECTIONS = [
+  [-1, -1],
+  [0, -1],
+  [1, -1],
+  [-1, 0],
+  [1, 0],
+  [-1, 1],
+  [0, 1],
+  [1, 1]
+]
 def adjacents(input, x, y)
-  [
-    [x-1, y-1],
-    [x,   y-1],
-    [x+1, y-1],
-    [x-1, y],
-    [x+1, y],
-    [x-1, y+1],
-    [x,   y+1],
-    [x+1, y+1],
-  ].filter { |x,y| x.between?(0, input.first.length - 1) && y.between?(0, input.length - 1) }
+  DIRECTIONS.count do |dx,dy|
+    w, z = x + dx, y + dy
+    w.between?(0, input.first.length - 1) && z.between?(0, input.length - 1) && input[z][w] == "#"
+  end
 end
 
 def los_adjacent(input, x, y)
-  directions = [
-    [-1, -1],
-    [0, -1],
-    [1, -1],
-    [-1, 0],
-    [1, 0],
-    [-1, 1],
-    [0, 1],
-    [1, 1]
-  ].map do |dx, dy|
-    w, z = x + dx, y + dy
-    occupied = nil
-    while w.between?(0, input.first.length - 1) && z.between?(0, input.length - 1)
+  DIRECTIONS.count do |dx, dy|
+    w, z, occupied = x + dx, y + dy, nil
+    while w.between?(0, input.first.length - 1) && z.between?(0, input.length - 1) && occupied != "#" && occupied != "L"
       occupied = input[z][w]
-      break if occupied == "#" || occupied == "L"
       w += dx
       z += dy
     end
-    occupied
+    occupied == "#"
   end
 end
 
@@ -58,14 +51,14 @@ def stabilize_seating(input)
         case v
         when "." then "."
         when "L" then
-          if adjacents(input, x, y).none? { |x,y| input[y][x] == "#" }
+          if adjacents(input, x, y) == 0
             changed ||= true
             "#"
           else
             "L"
           end
         when "#" then
-          if adjacents(input, x, y).count { |x,y| input[y][x] == "#" } >= 4
+          if adjacents(input, x, y) >= 4
             changed ||= true
             "L"
           else
@@ -75,7 +68,7 @@ def stabilize_seating(input)
       end
     end
   end while changed
-  input.flatten.tally["#"]
+  input.flatten.count("#")
 end
 
 def stabilize_seating_los(input)
@@ -86,14 +79,14 @@ def stabilize_seating_los(input)
         case v
         when "." then "."
         when "L" then
-          if los_adjacent(input, x, y).none? { |v| v == "#" }
+          if los_adjacent(input, x, y) == 0
             changed ||= true
             "#"
           else
             "L"
           end
         when "#" then
-          if los_adjacent(input, x, y).count { |v| v == "#" } >= 5
+          if los_adjacent(input, x, y) >= 5
             changed ||= true
             "L"
           else
@@ -103,7 +96,7 @@ def stabilize_seating_los(input)
       end
     end
   end while changed
-  input.flatten.join("").count("#")
+  input.flatten.count("#")
 end
 
 
