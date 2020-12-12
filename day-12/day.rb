@@ -16,12 +16,12 @@ end
 Inst = Struct.new(:op, :units)
 
 Coord = Struct.new(:x, :y) do
-  def move(dir, n)
-    case dir
-    when "N", 0   then self.y += n
-    when "E", 90  then self.x += n
-    when "S", 180 then self.y -= n
-    when "W", 270 then self.x -= n
+  def move(deg, n)
+    case deg
+    when 0   then self.y += n
+    when 90  then self.x += n
+    when 180 then self.y -= n
+    when 270 then self.x -= n
     end
   end
 
@@ -41,6 +41,7 @@ Coord = Struct.new(:x, :y) do
   end
 end
 
+HEADINGS = { "N" => 0, "E" => 90, "S" => 180, "W" => 270 }
 class Ship
   attr_reader :coord, :facing
   def initialize
@@ -55,7 +56,7 @@ class Ship
   def navigate(input)
     input.each do |inst|
       case inst.op
-      when "N", "S", "E", "W" then coord.move(*inst)
+      when "N", "S", "E", "W" then coord.move(HEADINGS[inst.op], inst.units)
       when "L" then turn(-inst.units)
       when "R" then turn(inst.units)
       when "F" then coord.move(facing % 360, inst.units)
@@ -75,7 +76,7 @@ class WaypointShip
   def navigate(input)
     input.each do |inst|
       case inst.op
-      when "N", "S", "E", "W" then waypoint.move(*inst)
+      when "N", "S", "E", "W" then waypoint.move(HEADINGS[inst.op], inst.units)
       when "L" then waypoint.rotate(360 - inst.units)
       when "R" then waypoint.rotate(inst.units)
       when "F" then
