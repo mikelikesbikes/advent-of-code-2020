@@ -24,9 +24,11 @@ describe "day" do
   end
 
   it "should ..." do
-    expect(DecoderV1.new(input).memory.values.sum).to eq 165
+    expect(DecoderV1.new(input).sum_memory).to eq 165
+    expect(DecoderV1.new(actual_input).sum_memory).to eq 6317049172545
   end
   it "should ..." do
-    expect(DecoderV2.new(input2).memory.values.sum).to eq 208
+    expect(DecoderV2.new(input2).sum_memory).to eq 208
+    expect(DecoderV2.new(actual_input).sum_memory).to eq 3434009980379
   end
 end
