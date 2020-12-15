@@ -14,6 +14,7 @@ describe "day" do
 
   it "should find the 2020th number" do
     expect(nth_number(input, 2)).to eq 3
+    expect(nth_number(input, 10)).to eq 0
     expect(nth_number(input, 2020)).to eq 436
     expect(nth_number(actual_input, 2020)).to eq 319
   end

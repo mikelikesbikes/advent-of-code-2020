@@ -8,7 +8,7 @@ def read_input(filename = "input.txt")
 end
 
 def parse_input(input)
-  input.split(",").map do |line|
+  input.split("\n").first.split(",").map do |line|
     Integer(line)
   end
 end
@@ -17,19 +17,14 @@ end
 def nth_number(starting_nums, n)
   return starting_nums[n-1] if n < starting_nums.length
   memory = {}
-  starting_nums.each_with_index { |n, i| memory[n] = i + 1 }
-  last_num = starting_nums.last
-  last_new = true
-  (starting_nums.length + 1).upto(n) do |i|
-    num = last_new ? 0 : i - memory[last_num] - 1
-    memory[last_num] = i - 1
-    last_num = num
-    last_new = !memory.key?(num)
+  (0...starting_nums.length - 1).each_with_index { |i| memory[starting_nums[i]] = i + 1 }
+  (starting_nums.length).upto(n-1).reduce(starting_nums.last) do |last_num, i|
+    memory[last_num], last_num = i, memory[last_num] ? i - memory[last_num] : 0
+    last_num
   end
-  last_num
 end
 
-return unless $PROGRAM_NAME == __FILE__
+return unless $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?("ruby-memory-profiler")
 
 input = parse_input(read_input)
 
