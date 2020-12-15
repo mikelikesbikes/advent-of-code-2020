@@ -16,7 +16,7 @@ end
 
 ### CODE HERE ###
 
-return unless $PROGRAM_NAME == __FILE__
+return unless $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?("ruby-memory-profiler")
 
 input = parse_input(read_input)
 
