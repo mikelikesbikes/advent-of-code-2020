@@ -13,11 +13,13 @@ describe "day" do
   end
 
   it "should find the 2020th number" do
+    expect(nth_number(input, 2)).to eq 3
     expect(nth_number(input, 2020)).to eq 436
     expect(nth_number(actual_input, 2020)).to eq 319
   end
+
   it "should find the 30,000,000th number" do
     expect(nth_number(input, 30_000_000)).to eq 175594
-    expect(nth_number(input, 30_000_000)).to eq 2424
+    expect(nth_number(actual_input, 30_000_000)).to eq 2424
   end
 end

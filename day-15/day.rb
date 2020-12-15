@@ -15,7 +15,9 @@ end
 
 ### CODE HERE ###
 def nth_number(starting_nums, n)
-  memory = Hash[starting_nums.zip([*1..starting_nums.length])]
+  return starting_nums[n-1] if n < starting_nums.length
+  memory = {}
+  starting_nums.each_with_index { |n, i| memory[n] = i + 1 }
   last_num = starting_nums.last
   last_new = true
   (starting_nums.length + 1).upto(n) do |i|
