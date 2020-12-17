@@ -9,10 +9,10 @@ def read_input(filename = "input.txt")
   end
 end
 
-def parse_input(input)
-  input.split("\n").each_with_index.each_with_object([]) do |(row, y), h|
+def parse_input(input, coord_class)
+  input.split("\n").each_with_index.each_with_object(Set.new) do |(row, y), s|
     row.each_char.with_index do |c, x|
-      h << [x, y] if c == "#"
+      s << coord_class.new(x, y) if c == "#"
     end
   end
 end
@@ -61,14 +61,6 @@ Coord4D = Struct.new(:x, :y, :z, :w) do
 end
 
 Conway = Struct.new(:grid, :coord_class) do
-  def initialize(*)
-    super
-
-    self.grid = self.grid.each_with_object(Set.new) do |(x, y), s|
-      s << coord_class.new(x, y)
-    end
-  end
-
   def evolve
     candidates = Set.new
     # find all candidate cubes
@@ -104,13 +96,11 @@ end
 
 return unless $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?("ruby-memory-profiler")
 
-input = parse_input(read_input)
-
 ### RUN STUFF HERE ###
-grid = Conway.new(input, Coord)
+grid = Conway.new(parse_input(read_input, Coord))
 6.times { grid.evolve }
 puts grid.alive
 
-grid = Conway.new(input, Coord4D)
+grid = Conway.new(parse_input(read_input, Coord4D))
 6.times { grid.evolve }
 puts grid.alive
