@@ -3,7 +3,7 @@ require_relative "./day"
 
 describe "day" do
   let(:input) do
-    <<~INPUT
+    parse_input(<<~INPUT)
       1 + 2 * 3 + 4 * 5 + 6
       1 + (2 * 3) + (4 * (5 + 6))
       2 * 3 + (4 * 5)
@@ -17,11 +17,13 @@ describe "day" do
     parse_input(File.read("input.txt"))
   end
 
-  it "should ..." do
-    expect(evaluate(parse_input(input, Operation))).to eq [71, 51, 26, 437, 12240, 13632]
+  it "do basic math" do
+    expect(evaluate(input, P1_PRECEDENCE)).to eq [71, 51, 26, 437, 12240, 13632]
+    expect(evaluate(actual_input, P1_PRECEDENCE).sum).to eq 9535936849815
   end
 
   it "does advanced math" do
-    expect(evaluate(parse_input(input, Operation2))).to eq [231, 51, 46, 1445, 669060, 23340]
+    expect(evaluate(input, P2_PRECEDENCE)).to eq [231, 51, 46, 1445, 669060, 23340]
+    expect(evaluate(actual_input, P2_PRECEDENCE).sum).to eq 472171581333710
   end
 end
