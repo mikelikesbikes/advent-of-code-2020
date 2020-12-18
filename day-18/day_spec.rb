@@ -18,8 +18,8 @@ describe "day" do
   end
 
   it "do basic math" do
-    expect(evaluate(input, P1_PRECEDENCE)).to eq [71, 51, 26, 437, 12240, 13632]
-    expect(evaluate(actual_input, P1_PRECEDENCE).sum).to eq 9535936849815
+    expect(evaluate(input)).to eq [71, 51, 26, 437, 12240, 13632]
+    expect(evaluate(actual_input).sum).to eq 9535936849815
   end
 
   it "does advanced math" do

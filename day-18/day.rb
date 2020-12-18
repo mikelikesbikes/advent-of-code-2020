@@ -20,7 +20,8 @@ Expression = Struct.new(:tokens) do
     new(str.gsub(/\s+/, "").chars.map { |c| c.match?(/\d/) ? Integer(c) : c })
   end
 
-  def evaluate(p={ "+" => 1, "*" => 1, "(" => -1 })
+  PRECEDENCE=Hash.new(1).tap { |h| h["("] = 0 }
+  def evaluate(p=PRECEDENCE)
     nums, ops = [], []
     tokens.each do |token|
       case token
@@ -49,8 +50,7 @@ def evaluate(input, *p)
   input.map { |exp| exp.evaluate(*p) }
 end
 
-P1_PRECEDENCE = { "+" => 1, "*" => 1, "(" => -1 }
-P2_PRECEDENCE = { "+" => 2, "*" => 1, "(" => -1 }
+P2_PRECEDENCE = PRECEDENCE.merge({"+" => 2, "*" => 1})
 
 return unless $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?("ruby-memory-profiler")
 
