@@ -9,50 +9,56 @@ end
 
 def parse_input(input)
   rules, messages = input.split("\n\n").map { |s| s.split("\n") }
-  rules = rules.each_with_object({}) do |rule, h|
-    n, parts = rule.split(": ")
-    parts = if parts.start_with?('"')
-      [parts[1]]
+  rule_set = rules.each_with_object(RuleSet.new) do |str, rule_set|
+    rule_set.add(Rule.parse(str))
+  end
+  [rule_set, messages]
+end
+
+### CODE HERE ###
+Rule = Struct.new(:id, :parts) do
+  def self.parse(str)
+    n, str = str.split(": ")
+
+    parts = if str.start_with?('"')
+      [str[1]]
     else
-      parts.split("|").map! do |part|
+      str.split("|").map! do |part|
         part.split(" ").map! do |c|
           Integer(c)
         end
       end
     end
-    h[Integer(n)] = Rule.new(parts)
+    Rule.new(Integer(n), parts)
   end
-  [Rules.new(rules), messages]
 end
 
-### CODE HERE ###
-Rules = Struct.new(:rules) do
-  def match_at?(str, n, i)
+RuleSet = Struct.new(:rules) do
+  def initialize(*)
+    super
+    self.rules ||= {}
+  end
+
+  def add(rule)
+    self.rules[rule.id] = rule
+  end
+
+  def match_rule?(str, i)
     nodes = [Array[i]]
-    # 0
-    # 4 1 5
-    # 4 2 3 5 | 4 3 2 5
-    # 4 3 2 5 | 4 4 4 3 5 | 4 5 5 3 5
-    # 4 4 4 3 5 | 4 5 5 3 5 | 4 4 5 2 5 | 4 5 4 2 5
-    # 4 5 5 3 5 | 4 4 5 2 5 | 4 5 4 2 5 | 4 4 4 4 5 5 | 4 4 4 5 4 5
-    # 4 4 5 2 5 | 4 5 4 2 5 | 4 4 4 4 5 5 | 4 4 4 5 4 5 | 4 5 5 4 5 5 | 4 5 5 5 4 5
-    # 4 5 4 2 5 | 4 4 4 4 5 5 | 4 4 4 5 4 5 | 4 5 5 4 5 5 | 4 5 5 5 4 5 | 4 4 5 4 4 5 | 4 4 5 5 5 5
-    # 4 4 4 4 5 5 | 4 4 4 5 4 5 | 4 5 5 4 5 5 | 4 5 5 5 4 5 | 4 4 5 4 4 5 | 4 4 5 5 5 5
 
     while !nodes.empty?
-      #p nodes
       node = nodes.shift
-      # expand each part pushing back into nodes
-      # expand index
       i = node.index { |n| Integer === n }
-      #p ["node", node, i]
       if i
         prefix, suffix = node[0...i], node[i+1..-1]
-        if str.start_with?(prefix.join)
+        prefix = prefix.join
+        # skip expanding patterns that don't start with the prefix
+        if str.start_with?(prefix)
           Array(rules[node[i]].parts).each do |part|
-            #p ["parts: ", prefix, part, suffix ]
-            #p prefix+Array(part)+suffix
-            nodes.push(prefix + Array(part) + suffix)
+            # skip adding patterns that are longer than the target string
+            if prefix.length + part.length + suffix.length <= str.length
+              nodes.push(Array(prefix) + Array(part) + suffix)
+            end
           end
         end
       else
@@ -62,12 +68,10 @@ Rules = Struct.new(:rules) do
   end
 end
 
-Rule = Struct.new(:parts) do
-end
 
 def valid_messages(rules, messages)
   messages.count do |message|
-    rules.match_at?(message, 0, 0)
+    rules.match_rule?(message, 0)
   end
 end
 
@@ -78,6 +82,6 @@ rules, messages = parse_input(read_input)
 ### RUN STUFF HERE ###
 puts valid_messages(rules, messages)
 
-rules.rules[8] = Rule.new([[42], [42, 8]])
-rules.rules[11] = Rule.new([[42, 31], [42, 11, 31]])
+rules.add(Rule.parse("8: 42 | 42 8"))
+rules.add(Rule.parse("11: 42 31 | 42 11 31"))
 puts valid_messages(rules, messages)

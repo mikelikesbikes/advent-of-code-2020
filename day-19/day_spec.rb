@@ -77,12 +77,18 @@ describe "day" do
   it "should ..." do
     expect(valid_messages(*input)).to eq 2
     expect(valid_messages(*input2)).to eq 3
+    expect(valid_messages(*actual_input)).to eq 165
   end
 
   it "should find valid messages with modified rules" do
     rules, messages = input2
-    rules.rules[8] = Rule.new([[42, 8], [42]])
-    rules.rules[11] = Rule.new([[42, 11, 31], [42, 31]])
+    rules.add(Rule.parse("8: 42 | 42 8"))
+    rules.add(Rule.parse("11: 42 31 | 42 11 31"))
     expect(valid_messages(*input2)).to eq 12
+
+    rules, messages = actual_input
+    rules.add(Rule.parse("8: 42 | 42 8"))
+    rules.add(Rule.parse("11: 42 31 | 42 11 31"))
+    expect(valid_messages(*actual_input)).to eq 274
   end
 end
