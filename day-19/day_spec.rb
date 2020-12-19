@@ -53,6 +53,20 @@ describe "day" do
       24: 14 1
 
       abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa
+      bbabbbbaabaabba
+      babbbbaabbbbbabbbbbbaabaaabaaa
+      aaabbbbbbaaaabaababaabababbabaaabbababababaaa
+      bbbbbbbaaaabbbbaaabbabaaa
+      bbbababbbbaaaaaaaabbababaaababaabab
+      ababaaaaaabaaab
+      ababaaaaabbbaba
+      baabbaaaabbaaaababbaababb
+      abbbbabbbbaaaababbbbbbaaaababb
+      aaaaabbaabaaaaababaa
+      aaaabbaaaabbaaa
+      aaaabbaabbaaaaaaabbbabbbaaabbaabaaa
+      babaaabbbaaabaababbaabababaaab
+      aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba
     INPUT
   end
 

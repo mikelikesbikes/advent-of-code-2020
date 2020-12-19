@@ -12,7 +12,7 @@ def parse_input(input)
   rules = rules.each_with_object({}) do |rule, h|
     n, parts = rule.split(": ")
     parts = if parts.start_with?('"')
-      parts[1]
+      [parts[1]]
     else
       parts.split("|").map! do |part|
         part.split(" ").map! do |c|
@@ -27,39 +27,47 @@ end
 
 ### CODE HERE ###
 Rules = Struct.new(:rules) do
-  def match_at(str, n, i)
-    #p [str, n, i, rules[i]]
-    res = rules[i].match_at(str, n, self)
-    p [str, n, i, rules[i], res] if i == 8 || i == 11
-    res
+  def match_at?(str, n, i)
+    nodes = [Array[i]]
+    # 0
+    # 4 1 5
+    # 4 2 3 5 | 4 3 2 5
+    # 4 3 2 5 | 4 4 4 3 5 | 4 5 5 3 5
+    # 4 4 4 3 5 | 4 5 5 3 5 | 4 4 5 2 5 | 4 5 4 2 5
+    # 4 5 5 3 5 | 4 4 5 2 5 | 4 5 4 2 5 | 4 4 4 4 5 5 | 4 4 4 5 4 5
+    # 4 4 5 2 5 | 4 5 4 2 5 | 4 4 4 4 5 5 | 4 4 4 5 4 5 | 4 5 5 4 5 5 | 4 5 5 5 4 5
+    # 4 5 4 2 5 | 4 4 4 4 5 5 | 4 4 4 5 4 5 | 4 5 5 4 5 5 | 4 5 5 5 4 5 | 4 4 5 4 4 5 | 4 4 5 5 5 5
+    # 4 4 4 4 5 5 | 4 4 4 5 4 5 | 4 5 5 4 5 5 | 4 5 5 5 4 5 | 4 4 5 4 4 5 | 4 4 5 5 5 5
+
+    while !nodes.empty?
+      #p nodes
+      node = nodes.shift
+      # expand each part pushing back into nodes
+      # expand index
+      i = node.index { |n| Integer === n }
+      #p ["node", node, i]
+      if i
+        prefix, suffix = node[0...i], node[i+1..-1]
+        if str.start_with?(prefix.join)
+          Array(rules[node[i]].parts).each do |part|
+            #p ["parts: ", prefix, part, suffix ]
+            #p prefix+Array(part)+suffix
+            nodes.push(prefix + Array(part) + suffix)
+          end
+        end
+      else
+        return true if node.join == str
+      end
+    end
   end
 end
 
 Rule = Struct.new(:parts) do
-  def match_at(str, n, rules)
-    if terminal?
-      str[n] == parts ? 1 : -1
-    else
-      parts.each do |part|
-        match_len = part.reduce(0) do |o, sub_rule_index|
-          res = rules.match_at(str, n + o, sub_rule_index)
-          break -1 unless res > 0
-          o + res
-        end
-        return match_len if match_len > 0
-      end
-      0
-    end
-  end
-
-  def terminal?
-    String === parts
-  end
 end
 
 def valid_messages(rules, messages)
   messages.count do |message|
-    rules.match_at(message, 0, 0) == message.length
+    rules.match_at?(message, 0, 0)
   end
 end
 
