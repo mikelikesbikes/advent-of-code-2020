@@ -15,7 +15,7 @@ describe "day" do
     parse_input(File.read("input.txt"))
   end
 
-  it "should ..." do
+  it "should how many times non-allergen ingredients are used" do
     expect(find_non_allergens(input).length).to eq 5
   end
 
