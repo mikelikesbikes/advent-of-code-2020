@@ -17,6 +17,7 @@ describe "day" do
 
   it "should how many times non-allergen ingredients are used" do
     expect(find_non_allergens(input).length).to eq 5
+    expect(find_non_allergens(actual_input).length).to eq 2176
   end
 
   it "should find which ingredients match which allergens" do
@@ -25,5 +26,6 @@ describe "day" do
 
   it "should find dangerous ingredients" do
     expect(dangerous_ingredients(input)).to eq "mxmxvkd,sqjhc,fvjkl"
+    expect(dangerous_ingredients(actual_input)).to eq "lvv,xblchx,tr,gzvsg,jlsqx,fnntr,pmz,csqc"
   end
 end
