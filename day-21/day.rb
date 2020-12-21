@@ -11,8 +11,7 @@ end
 
 def parse_input(input)
   input.split("\n").map do |line|
-    i_str, a_str = line.match(/(.*) \(contains (.*)\)/).captures
-    Food.new(i_str.split(" "), a_str.split(", "))
+    Food.parse(line)
   end
 end
 
@@ -52,7 +51,14 @@ def dangerous_ingredients(foods)
   ingredient_to_allergen.sort_by(&:last).map(&:first).join(",")
 end
 
-Food = Struct.new(:ingredients, :allergens)
+FOOD_REGEX = /\A(.*) \(contains (.*)\)\Z/
+Food = Struct.new(:ingredients, :allergens) do
+  def self.parse(str)
+    ingredients, allergens = str.match(FOOD_REGEX).captures
+    new(ingredients.split(" "), allergens.split(", "))
+  end
+end
+
 
 
 ### CODE HERE ###
