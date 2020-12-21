@@ -33,21 +33,23 @@ def find_non_allergens(foods)
 end
 
 def dangerous_ingredients(foods)
-  ita = allergen_candidates(foods).each_with_object(Hash.new { |k,v| k[v] = [] }) do |(k,v),c|
-    v.each do |w|
-      c[w] << k
+  ingredient_to_allergen = allergen_candidates(foods).each_with_object(Hash.new { |k,v| k[v] = [] }) do |(allergen, ingredients), ingredient_to_allergen|
+    ingredients.each do |ingredient|
+      ingredient_to_allergen[ingredient] << allergen
     end
   end
-  itaa = []
-  until ita.length == 0
-    i = ita.find { |k, v| v.length == 1 }
-    ita.delete(i.first)
-    ita.each do |k, v|
-      ita[k] -= i.last
+
+  # reduce the ingredient_to_allergens mapping so each ingredient has only a single allergen
+  ingredient_to_allergen = ingredient_to_allergen.length.times.each_with_object([]) do |_, reduced|
+    ingredient, allergens = ingredient_to_allergen.find { |_, allergens| allergens.length == 1 }
+    reduced << [ingredient, allergens.first]
+    ingredient_to_allergen.delete(ingredient)
+    ingredient_to_allergen.each do |ingredient, _|
+      ingredient_to_allergen[ingredient] -= allergens
     end
-    itaa << [i.first, i.last.first]
   end
-  itaa.sort_by(&:last).map(&:first).join(",")
+
+  ingredient_to_allergen.sort_by(&:last).map(&:first).join(",")
 end
 
 Food = Struct.new(:ingredients, :allergens)
