@@ -13,6 +13,24 @@ def parse_input(input)
   end
 end
 
+
+PERIOD = "."
+HASH = "#"
+ZERO = "0"
+ONE = "1"
+NEWL = "\n"
+
+# I'm storing edges as integers... so... i need to be able to reverse the bits of a 10bit integer
+class Integer
+  LOOKUP = (0...2**10).each_with_object({}) do |i, h|
+    rev = i.to_s(2).rjust(10, ZERO).reverse.to_i(2)
+    h[i] = rev
+  end
+  def reverse
+    LOOKUP.fetch(self)
+  end
+end
+
 class CameraArray
   attr_reader :cameras
 
@@ -58,8 +76,11 @@ class CameraArray
     unused_camera_ids = cameras.keys - alignment.map(&:first)
     unused_camera_ids.each do |id|
       (0..7).each do |n|
-        flip, rotation = n.divmod(4)
-        alignment[i] = [id, flip, rotation]
+        flip, rotation = n/4, n%4
+        alignment[i] = [] unless alignment[i]
+        alignment[i][0] = id
+        alignment[i][1] = flip
+        alignment[i][2] = rotation
         if valid_at?(alignment, i)
           res = find_alignment(i + 1, alignment)
           return res if res
@@ -80,34 +101,34 @@ class CameraArray
   def valid_at?(alignment, i)
     id, flip, rotation = alignment[i]
     edges = cameras[id].edges(flip, rotation)
-    y, x = i.divmod(len)
-
-    # match above
-    if y - 1 >= 0 && n = alignment[(y-1)*len + x]
-      n_id, n_flip, n_rotation = n
-      n_edges = cameras[n_id].edges(n_flip, n_rotation)
-      return false unless edges[TOP].reverse == n_edges[BOTTOM]
-    end
-
-    # match below
-    if y + 1 < len && n = alignment[(y+1)*len + x]
-      n_id, n_flip, n_rotation = n
-      n_edges = cameras[n_id].edges(n_flip, n_rotation)
-      return false unless edges[BOTTOM].reverse == n_edges[TOP]
-    end
+    y, x = i/len, i%len
 
     # match left
     if x - 1 >= 0 && n = alignment[y*len + x - 1]
       n_id, n_flip, n_rotation = n
       n_edges = cameras[n_id].edges(n_flip, n_rotation)
-      return false unless edges[LEFT].reverse == n_edges[RIGHT]
+      return false unless edges[LEFT] == n_edges[RIGHT].reverse
     end
 
     # match right
     if x + 1 < len && n = alignment[y*len + x + 1]
       n_id, n_flip, n_rotation = n
       n_edges = cameras[n_id].edges(n_flip, n_rotation)
-      return false unless edges[RIGHT].reverse == n_edges[LEFT]
+      return false unless edges[RIGHT] == n_edges[LEFT].reverse
+    end
+
+    # match above
+    if y - 1 >= 0 && n = alignment[(y-1)*len + x]
+      n_id, n_flip, n_rotation = n
+      n_edges = cameras[n_id].edges(n_flip, n_rotation)
+      return false unless edges[TOP] == n_edges[BOTTOM].reverse
+    end
+
+    # match below
+    if y + 1 < len && n = alignment[(y+1)*len + x]
+      n_id, n_flip, n_rotation = n
+      n_edges = cameras[n_id].edges(n_flip, n_rotation)
+      return false unless edges[BOTTOM] == n_edges[TOP].reverse
     end
 
     return true
@@ -126,7 +147,7 @@ class Camera
   end
 
   def self.parse(str)
-    id, *image = str.split("\n")
+    id, *image = str.split(NEWL)
     new(Integer(id[5..8]), image)
   end
 
@@ -155,12 +176,16 @@ class Camera
 
     # re-calculate edges when image is set
     self._edges = [
-      @image.first.gsub(".", "0").gsub("#", "1"),
-      @image.map { |s| s[-1] }.join.gsub(".", "0").gsub("#", "1"),
-      @image.last.reverse.gsub(".", "0").gsub("#", "1"),
-      @image.map { |s| s[0] }.reverse.join.gsub(".", "0").gsub("#", "1")
+      as_int(@image.first),
+      as_int(@image.map { |s| s[-1] }.join),
+      as_int(@image.last.reverse),
+      as_int(@image.map { |s| s[0] }.reverse.join)
     ]
     @edges_memo = {}
+  end
+
+  def as_int(str)
+    Integer(str.gsub(PERIOD, ZERO).gsub(HASH, ONE), 2)
   end
 end
 
@@ -168,14 +193,13 @@ def flip_and_rotate(image, flip, rotation)
   if flip == 1
     image = image.reverse
   end
+  image = image.map(&:chars)
   rotation.times do
-    image = image.map(&:chars)
     image = image.yield_self do |row, *rows|
       row.zip(*rows).map(&:reverse)
     end
-    image = image.map(&:join)
   end
-  image
+  image = image.map(&:join)
 end
 
 SEA_MONSTER = <<~MONSTER
@@ -183,9 +207,9 @@ SEA_MONSTER = <<~MONSTER
 #    ##    ##    ###
  #  #  #  #  #  #
 MONSTER
-SEA_MONSTER_OVERLAY = SEA_MONSTER.split("\n").each_with_index.each_with_object([]) do |(row, y), sm|
+SEA_MONSTER_OVERLAY = SEA_MONSTER.split(NEWL).each_with_index.each_with_object([]) do |(row, y), sm|
   row.chars.each_with_index do |c, x|
-    sm << [x, y] if c == "#"
+    sm << [x, y] if c == HASH
   end
 end
 SEA_MONSTER_BOUNDS = [20,3]
@@ -198,10 +222,10 @@ def place_sea_monster(image)
     placed = false
     (0...aimage.length - 3).each do |y|
       (0...row_length - 20).each do |x|
-        if SEA_MONSTER_OVERLAY.all? { |dx, dy| aimage[y+dy][x+dx] == "#" }
+        if SEA_MONSTER_OVERLAY.all? { |dx, dy| aimage[y+dy][x+dx] == HASH }
           placed = true
           SEA_MONSTER_OVERLAY.each do |dx, dy|
-            aimage[y+dy][x+dx] = "O"
+            aimage[y+dy][x+dx] = ZERO
           end
         end
       end
@@ -212,7 +236,7 @@ def place_sea_monster(image)
 end
 
 def rough_waters(image)
-  image.join("\n").count("#")
+  image.join(NEWL).count(HASH)
 end
 
 
