@@ -193,13 +193,17 @@ def flip_and_rotate(image, flip, rotation)
   if flip == 1
     image = image.reverse
   end
-  image = image.map(&:chars)
+  n = image.length
+  res = Array.new(n) { " "*n }
   rotation.times do
-    image = image.yield_self do |row, *rows|
-      row.zip(*rows).map(&:reverse)
+    (0...n).each do |i|
+      (0...n).each do |j|
+        res[i][j] = image[n - j - 1][i]
+      end
     end
+    res, image = image, res
   end
-  image = image.map(&:join)
+  image
 end
 
 SEA_MONSTER = <<~MONSTER
@@ -212,7 +216,6 @@ SEA_MONSTER_OVERLAY = SEA_MONSTER.split(NEWL).each_with_index.each_with_object([
     sm << [x, y] if c == HASH
   end
 end
-SEA_MONSTER_BOUNDS = [20,3]
 
 def place_sea_monster(image)
   row_length = image.first.length
