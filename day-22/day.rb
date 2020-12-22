@@ -74,8 +74,14 @@ def play_recursive(deck1, deck2, game = 1)
   end
 end
 
+# idk if this actually generalized... but it worked on my inputs... and was
+# MUCH faster than eg. `deck1.hash * deck2.hash`
 def dhash(deck1, deck2)
-  deck1.hash * deck2.hash
+  h1 = 0
+  deck1.each { |i| h1 = (h1 << 0) + i }
+  h2 = 0
+  deck2.each { |i| h2 = (h2 << 2) + i }
+  h1 * h2
 end
 
 def score(deck)
