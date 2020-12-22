@@ -239,7 +239,7 @@ def place_sea_monster(image)
 end
 
 def rough_waters(image)
-  image.join(NEWL).count(HASH)
+  image.sum { |s| s.count(HASH) }
 end
 
 
