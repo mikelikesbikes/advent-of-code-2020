@@ -2,8 +2,10 @@ require "rspec"
 require_relative "./day"
 
 describe "day" do
-  let(:input) do
-    parse_input(<<~INPUT)
+  before(:all) do
+    # creating these in the before all because p2 builds on expensive work in
+    # p1
+    @input = parse_input(<<~INPUT)
       Tile 2311:
       ..##.#..#.
       ##..#.....
@@ -112,21 +114,21 @@ describe "day" do
       ..#.......
       ..#.###...
     INPUT
+    @actual_input = parse_input(File.read("input.txt"))
   end
-
-  let(:actual_input) do
-    parse_input(File.read("input.txt"))
-  end
+  let(:input) { @input }
+  let(:actual_input) { @actual_input }
 
   it "should ..." do
-    expect(corners(reassemble_image(input))).to eq 20899048083289
+    expect(input.alignment_checksum).to eq 20899048083289
+    expect(actual_input.alignment_checksum).to eq 17148689442341
   end
 
   it "should find sea monsters" do
-    image = reassemble_image(input)
-    image = stitch_image(input, image)
-    image = place_sea_monster(image)
-    puts image
+    image = place_sea_monster(input.image)
     expect(rough_waters(image)).to eq 273
+
+    image = place_sea_monster(actual_input.image)
+    expect(rough_waters(image)).to eq 2009
   end
 end

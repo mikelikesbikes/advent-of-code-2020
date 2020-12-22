@@ -8,66 +8,159 @@ def read_input(filename = "input.txt")
 end
 
 def parse_input(input)
-  input.split("\n\n").each_with_object({}) do |str, h|
-    tile = Tile.parse(str)
-    h[tile.id] = tile
+  input.split("\n\n").each_with_object(CameraArray.new) do |str, ca|
+    ca.add(Camera.parse(str))
   end
 end
 
-Tile = Struct.new(:id, :grid, :_edges) do
+class CameraArray
+  attr_reader :cameras
+
   def initialize(*)
-    super
-    # top, right, bottom, left
-    self._edges = [
-      grid.first.gsub(".", "0").gsub("#", "1"),
-      grid.map { |s| s[-1] }.join.gsub(".", "0").gsub("#", "1"),
-      grid.last.reverse.gsub(".", "0").gsub("#", "1"),
-      grid.map { |s| s[0] }.reverse.join.gsub(".", "0").gsub("#", "1")
-    ]
+    @cameras ||= {}
+  end
+
+  def add(camera)
+    cameras[camera.id] = camera
+  end
+
+  def alignment
+    @alignment ||= find_alignment
+  end
+
+  def alignment_checksum
+    alignment[0][0] *
+      alignment[len-1][0] *
+      alignment[-len][0] *
+      alignment[-1][0]
+  end
+
+  def image
+    return @image if @image
+
+    images = alignment.map do |id, flip, rotation|
+      camera = cameras[id]
+      camera.calibrate(flip, rotation)
+      camera.image
+    end
+
+    @image = images.each_slice(len).flat_map do |(image, *rest)|
+      image.zip(*rest).map { |r| r.flatten.join }
+    end
+  end
+
+  # basically the recursive backtracking algorithm for sudoku...  find all the
+  # unused camera, try each one in each possible flip/rotation combination,
+  # recurse if the camera/flip/rotation can work in the given position in the
+  # camera array.
+  def find_alignment(i=0, alignment = [])
+    return alignment if i == cameras.length
+    unused_camera_ids = cameras.keys - alignment.map(&:first)
+    unused_camera_ids.each do |id|
+      (0..7).each do |n|
+        flip, rotation = n.divmod(4)
+        alignment[i] = [id, flip, rotation]
+        if valid_at?(alignment, i)
+          res = find_alignment(i + 1, alignment)
+          return res if res
+        end
+      end
+    end
+    alignment.delete_at(i)
+    return nil
+  end
+
+  # valid_at verifies that the given alignment is valid at position i each
+  # alignment entry is a tuple [camera id, flip, rotation] for the alignment
+  # entry to be valid, we find the edges of the camera with the alignment
+  # tuple, and ensure that the camera above, below, left, and right have
+  # corresponding matching edges. For example, the camera to the left must have
+  # a right edge that matches this camera's left edge.
+  TOP, RIGHT, BOTTOM, LEFT = 0, 1, 2, 3
+  def valid_at?(alignment, i)
+    id, flip, rotation = alignment[i]
+    edges = cameras[id].edges(flip, rotation)
+    y, x = i.divmod(len)
+
+    # match above
+    if y - 1 >= 0 && n = alignment[(y-1)*len + x]
+      n_id, n_flip, n_rotation = n
+      n_edges = cameras[n_id].edges(n_flip, n_rotation)
+      return false unless edges[TOP].reverse == n_edges[BOTTOM]
+    end
+
+    # match below
+    if y + 1 < len && n = alignment[(y+1)*len + x]
+      n_id, n_flip, n_rotation = n
+      n_edges = cameras[n_id].edges(n_flip, n_rotation)
+      return false unless edges[BOTTOM].reverse == n_edges[TOP]
+    end
+
+    # match left
+    if x - 1 >= 0 && n = alignment[y*len + x - 1]
+      n_id, n_flip, n_rotation = n
+      n_edges = cameras[n_id].edges(n_flip, n_rotation)
+      return false unless edges[LEFT].reverse == n_edges[RIGHT]
+    end
+
+    # match right
+    if x + 1 < len && n = alignment[y*len + x + 1]
+      n_id, n_flip, n_rotation = n
+      n_edges = cameras[n_id].edges(n_flip, n_rotation)
+      return false unless edges[RIGHT].reverse == n_edges[LEFT]
+    end
+
+    return true
+  end
+
+  def len
+    Math.sqrt(cameras.length).floor
+  end
+end
+
+class Camera
+  attr_reader :id
+  def initialize(id, image)
+    @id = id
+    self.image = image
   end
 
   def self.parse(str)
-    meta, *rows = str.split("\n")
-    id = Integer(meta[5..8])
-    new(id, rows)
+    id, *image = str.split("\n")
+    new(Integer(id[5..8]), image)
   end
 
-  def trim_and_orient(flip, rotation)
-    image = grid[1..-2].map { |row| row[1..-2] }
-    flip_and_rotate(image, flip, rotation)
+  # return the trimmed image
+  def image
+    @image[1..-2].map { |row| row[1..-2] }
   end
 
-  def edges(flip, rotation)
+  def calibrate(flip, rotation)
+    self.image = flip_and_rotate(@image, flip, rotation)
+  end
+
+  def edges(flip = 0, rotation = 0)
     if flip == 1
-      [self._edges[2], self._edges[1], self._edges[0], self._edges[3]].map(&:reverse).rotate(-rotation)
+      [self._edges[2], self._edges[1], self._edges[0], self._edges[3]].map(&:reverse).rotate(-1 * rotation % 4)
     else
-      self._edges.rotate(-rotation)
+      self._edges.rotate(-1 * rotation % 4)
     end
   end
 
-  # mating edges are tile1.top ^ 1023 == tile2.bottom, same for all other sides
-end
+  private
+  attr_accessor :_edges
 
-# basically the recursive backtracking algorithm for sudoku...
-# possibilities = tiles with edges that can align to any tile that neighbors i
-# tiles can be rotate and flipped, which changes their edges
-def reassemble_image(tiles, i=0, image = [])
-  debug = image.length >= 2 && image[0][0] == 1951 && image[1][0] == 2311
-  return image if i == tiles.length
+  def image=(image)
+    @image = image
 
-  used_tile_ids = image.map { |t| t ? t.first : nil }
-  unused_tiles = tiles.values.reject { |t| used_tile_ids.include?(t.id) }
-  unused_tiles.each do |tile|
-    (0..7).each do |n|
-      image[i] = [tile.id, *n.divmod(2).reverse]
-      if valid_at?(tiles, image, i)
-        res = reassemble_image(tiles, i + 1, image)
-        return res if res
-      end
-    end
+    # re-calculate edges when image is set
+    self._edges = [
+      @image.first.gsub(".", "0").gsub("#", "1"),
+      @image.map { |s| s[-1] }.join.gsub(".", "0").gsub("#", "1"),
+      @image.last.reverse.gsub(".", "0").gsub("#", "1"),
+      @image.map { |s| s[0] }.reverse.join.gsub(".", "0").gsub("#", "1")
+    ]
   end
-  image.delete_at(i)
-  return nil
 end
 
 def flip_and_rotate(image, flip, rotation)
@@ -81,65 +174,7 @@ def flip_and_rotate(image, flip, rotation)
     end
     image = image.map(&:join)
   end
-
   image
-end
-
-def corners(image)
-  len = Math.sqrt(image.length).floor
-
-  image[0][0] * image[len-1][0] * image[-len][0] * image[-1][0]
-end
-
-def valid_at?(tiles, image, i)
-  len = Math.sqrt(tiles.length).floor
-  id, flip, rotation = image[i]
-  edges = tiles[id].edges(flip, rotation)
-  y, x = i.divmod(len)
-  # match above
-  debug = id == 2473 && i == 5
-  if y - 1 >= 0 && n = image[(y-1)*len + x]
-    n_id, n_flip, n_rotation = n
-    n_edges = tiles[n_id].edges(n_flip, n_rotation)
-#    require 'byebug'; debugger if debug
-    return false unless edges[0].reverse == n_edges[2]
-  end
-  # match below
-  if y + 1 < len && n = image[(y+1)*len + x]
-    n_id, n_flip, n_rotation = n
-    n_edges = tiles[n_id].edges(n_flip, n_rotation)
-    return false unless edges[2].reverse == n_edges[0]
-  end
-  # match left
-  if x - 1 >= 0 && n = image[y*len + x - 1]
-    n_id, n_flip, n_rotation = n
-    n_edges = tiles[n_id].edges(n_flip, n_rotation)
-    return false unless edges[3].reverse == n_edges[1]
-  end
-  # match right
-  if x + 1 < len && n = image[y*len + x + 1]
-    n_id, n_flip, n_rotation = n
-    n_edges = tiles[n_id].edges(n_flip, n_rotation)
-    return false unless edges[1].reverse == n_edges[3]
-  end
-
-  return true
-end
-
-def stitch_image(tiles, image)
-  stitch = image.map do |id, flip, rotation|
-    tiles[id].trim_and_orient(flip, rotation)
-  end
-
-  len = Math.sqrt(tiles.length).floor
-  stitch = stitch.each_slice(len).flat_map do |group|
-    group.first.length.times.map do |row_index|
-      group.reduce("") do |acc, grid|
-        acc + grid[row_index]
-      end
-    end
-  end
-  stitch
 end
 
 SEA_MONSTER = <<~MONSTER
@@ -184,14 +219,9 @@ end
 
 return unless $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?("ruby-memory-profiler")
 
-input = parse_input(read_input)
+camera_array = parse_input(read_input)
 
 ### RUN STUFF HERE ###
-image = reassemble_image(input)
-puts corners(image)
-image = stitch_image(input, image)
-image = place_sea_monster(image)
-#2354 is too high
-#2339 is too high
-#2324 is too high
+puts camera_array.alignment_checksum
+image = place_sea_monster(camera_array.image)
 puts rough_waters(image)
