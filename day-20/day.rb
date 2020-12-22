@@ -140,7 +140,7 @@ class Camera
   end
 
   def edges(flip = 0, rotation = 0)
-    if flip == 1
+    @edges_memo[flip * 4 + rotation] ||= if flip == 1
       [self._edges[2], self._edges[1], self._edges[0], self._edges[3]].map(&:reverse).rotate(-1 * rotation % 4)
     else
       self._edges.rotate(-1 * rotation % 4)
@@ -160,6 +160,7 @@ class Camera
       @image.last.reverse.gsub(".", "0").gsub("#", "1"),
       @image.map { |s| s[0] }.reverse.join.gsub(".", "0").gsub("#", "1")
     ]
+    @edges_memo = {}
   end
 end
 
