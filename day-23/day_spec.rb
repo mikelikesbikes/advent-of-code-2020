@@ -13,16 +13,16 @@ describe "day" do
   end
 
   it "should ..." do
-    game.move
-    #expect(game.cups).to eq [3, 2, 8, 9, 1, 5, 4, 6, 7]
-    expect(game.current_cup).to eq 2
-
-    9.times { game.move }
-    #expect(game.cups).to eq [ 5, 8, 3, 7, 4, 1, 9, 2, 6]
-    90.times { game.move }
+    100.times { game.move }
     expect(game.checksum).to eq "67384529"
 
     100.times { actual_game.move }
     expect(actual_game.checksum).to eq "52937846"
+  end
+
+  it "should do things 10M times" do
+    game = Game.parse("389125467", 1_000_000)
+    10_000_000.times { game.move }
+    expect(game.starcups).to eq 149245887792
   end
 end

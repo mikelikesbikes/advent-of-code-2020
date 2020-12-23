@@ -10,17 +10,16 @@ def read_input(filename = "input.txt")
 end
 
 class Game
-  attr_reader :cups
+  attr_reader :cups, :current_cup
 
   def initialize(cups, n = cups.length)
-    @current_cup_index = 0
-    @cups = cups
-    @cups += [*cups.length...n]
-    @moves_memo = Set.new
-  end
-
-  def current_cup
-    cups[@current_cup_index]
+    @current_cup = cups.first
+    # STRAP IN... We're using a Hash as a Linked List :D
+    @cups = (cups + [*cups.length+1..n])
+      .each_cons(2)
+      .each_with_object({cups[0] => cups[0]}) do |(a, b), m|
+        m[a], m[b] = b, m[a]
+      end
   end
 
   def self.parse(str, *args)
@@ -28,46 +27,46 @@ class Game
   end
 
   def move
-    current_cup = cups[@current_cup_index]
     # slice 3 cups
     slice = []
-    (1..3).each do |i|
-      t = @current_cup_index + 1 >= cups.length ? 0 : @current_cup_index + 1
-      slice << cups.delete_at(t)
+    n = cups[current_cup]
+    3.times do
+      slice << n
+      n = cups.delete(n)
+      cups[current_cup] = n
     end
 
     # find destination
-    nearest, max = 0, 0
-    (1...cups.length).each do |i|
-      c = cups[i]
-      if cups[nearest] >= current_cup || c < current_cup && c > cups[nearest]
-        nearest = i
-      end
-      if c > cups[max]
-        max = i
-      end
+    nearest = current_cup - 1
+    while nearest > 0 && !cups[nearest]
+      nearest -= 1
     end
-    destination = cups[nearest] < current_cup ? nearest : max
+    destination = nearest > 0 ? nearest : cups.keys.max
 
     # insert 3 cups
-    cups.insert(destination + 1, *slice)
-
-    # re-rotate the circle
-    ci = cups.index { |c| c == current_cup }
-    cups.rotate!(ci - @current_cup_index)
+    n = destination
+    slice.each do |cup|
+      cups[cup] = cups[n]
+      n = cups[n] = cup
+    end
 
     # set current cup index
-    @current_cup_index = (@current_cup_index + 1) % cups.length
+    @current_cup = cups[current_cup]
   end
 
   def checksum
-    index = cups.index { |c| c == 1 }
-    cups.rotate(index)[1..-1].join
+    n = cups[1]
+    sum = ""
+    while n != 1
+      sum << n.to_s
+      n = cups[n]
+    end
+    sum
   end
 
   def starcups
-    index = cups.index { |c| c == 1 }
-    cups[(index + 1) % cups.length] * cups[(index + 2) % cups.length]
+    n1 = cups[1]
+    n1 * cups[n1]
   end
 end
 
