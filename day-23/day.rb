@@ -9,17 +9,56 @@ def read_input(filename = "input.txt")
   end
 end
 
+# STRAP IN... We're using a Hash as a Linked List :D
+class Circle < Hash
+  attr_reader :max
+
+  def initialize(*)
+    super
+    @last = nil
+    @max = nil
+  end
+
+  def insert(node)
+    if size == 0
+      self[node] = node
+      @max = node
+    else
+      insert_after(@last, node)
+    end
+    @last = node
+  end
+
+  def insert_after(node, v)
+    @last = v if node == @last
+    @max = v if v > @max
+    self[v] = self[node]
+    self[node] = v
+  end
+
+  def delete_after(node)
+    self[node].tap do |v|
+      self[node] = self[v]
+      self.delete(v)
+      @last = node if v == @last
+    end
+  end
+end
+
 class Game
-  attr_reader :cups, :current_cup
+  attr_reader :cups, :current_cup, :slice
 
   def initialize(cups, n = cups.length)
     @current_cup = cups.first
-    # STRAP IN... We're using a Hash as a Linked List :D
-    @cups = (cups + [*cups.length+1..n])
-      .each_cons(2)
-      .each_with_object({cups[0] => cups[0]}) do |(a, b), m|
-        m[a], m[b] = b, m[a]
-      end
+    @cups = Circle.new
+    cups.each { |c| @cups.insert(c) }
+    c = cups.length+1
+    while c <= n
+      @cups.insert(c)
+      c += 1
+    end
+    @slice = []
+    @cups.max
   end
 
   def self.parse(str, *args)
@@ -28,26 +67,25 @@ class Game
 
   def move
     # slice 3 cups
-    slice = []
-    n = cups[current_cup]
     3.times do
-      slice << n
-      n = cups.delete(n)
-      cups[current_cup] = n
+      slice << cups.delete_after(current_cup)
     end
 
     # find destination
-    nearest = current_cup - 1
-    while nearest > 0 && !cups[nearest]
-      nearest -= 1
+    destination = current_cup - 1
+    while destination > 0 && !cups[destination]
+      destination -= 1
     end
-    destination = nearest > 0 ? nearest : cups.keys.max
+    if destination == 0
+      destination = cups.max
+      while !cups[destination]
+        destination -= 1
+      end
+    end
 
     # insert 3 cups
-    n = destination
-    slice.each do |cup|
-      cups[cup] = cups[n]
-      n = cups[n] = cup
+    until slice.empty?
+      cups.insert_after(destination, slice.pop)
     end
 
     # set current cup index

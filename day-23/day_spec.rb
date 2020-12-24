@@ -24,5 +24,9 @@ describe "day" do
     game = Game.parse("389125467", 1_000_000)
     10_000_000.times { game.move }
     expect(game.starcups).to eq 149245887792
+
+    actual_game = Game.parse(File.read("input.txt"), 1_000_000)
+    10_000_000.times { actual_game.move }
+    expect(actual_game.starcups).to eq 8456532414
   end
 end
