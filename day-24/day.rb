@@ -11,7 +11,7 @@ end
 
 def parse_input(input)
   input.split("\n").map do |line|
-    walk_path(tokenize(line))
+    Tile.build(tokenize(line))
   end
 end
 
@@ -20,11 +20,9 @@ def tokenize(str)
   while str.length > 0
     case str[0]
     when "w", "e"
-      tokens << str[0].intern
-      str = str[1..-1]
+      tokens << str.slice!(0).intern
     else
-      tokens << str[0, 2].intern
-      str = str[2..-1]
+      tokens << str.slice!(0, 2).intern
     end
   end
   tokens
@@ -40,41 +38,49 @@ def flip_tiles(inst)
   end
 end
 
-def walk_path(tokens)
-  x,y=0,0
-  tokens.each do |t|
-    case t
-    when :w then x -= 1
-    when :e then x += 1
-    when :ne then y -= 1
-    when :nw then x -=1 and y -= 1
-    when :se then x += 1 and y += 1
-    when :sw then y += 1
+Tile = Struct.new(:x, :y) do
+  NEIGHBOR_OFFSETS = [[-1, 0], [1, 0], [0, -1], [-1, -1], [1, 1], [0, 1]]
+  def neighbors
+    NEIGHBOR_OFFSETS.each do |dx, dy|
+      yield Tile.new(x + dx, y + dy)
     end
   end
-  [x,y]
-end
 
-def neighbors(x, y)
-  [[-1, 0], [1, 0], [0, -1], [-1, -1], [1, 1], [0, 1]].map do |dx, dy|
-    [x + dx, y + dy]
+  def self.build(tokens)
+    x,y=0,0
+    tokens.each do |t|
+      case t
+      when :w then x -= 1
+      when :e then x += 1
+      when :ne then y -= 1
+      when :nw then x -=1 and y -= 1
+      when :se then x += 1 and y += 1
+      when :sw then y += 1
+      end
+    end
+    new(x, y)
   end
 end
 
 def evolve(tiles)
-  candidates = tiles.reduce(Set.new) do |c, tile|
-    c.merge(neighbors(*tile))
-    c << tile
+  candidates = Set.new
+  tiles.each do |tile|
+    candidates.add(tile)
+    tile.neighbors do |n|
+      candidates.add(n)
+    end
   end
 
   n_tiles = Set.new
-  candidates.each do |c|
-    neighbor_count = neighbors(*c).count { |n| tiles.member?(n) }
-    # if the candidate is currently black
-    if tiles.member?(c)
-      n_tiles << c if neighbor_count == 1 || neighbor_count == 2
+  candidates.each do |tile|
+    neighbor_count = 0
+    tile.neighbors do |n|
+      neighbor_count += 1 if tiles.member?(n)
+    end
+    if tiles.member?(tile)
+      n_tiles << tile if neighbor_count.between?(1, 2)
     else
-      n_tiles << c if neighbor_count == 2
+      n_tiles << tile if neighbor_count == 2
     end
   end
   n_tiles
