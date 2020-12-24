@@ -10,32 +10,11 @@ def read_input(filename = "input.txt")
 end
 
 def parse_input(input)
-  input.split("\n").map do |line|
-    Tile.build(tokenize(line))
+  tile_set = TileSet.new
+  input.split("\n").each do |line|
+    tile_set.toggle(Tile.build(line))
   end
-end
-
-def tokenize(str)
-  tokens = []
-  while str.length > 0
-    case str[0]
-    when "w", "e"
-      tokens << str.slice!(0).intern
-    else
-      tokens << str.slice!(0, 2).intern
-    end
-  end
-  tokens
-end
-
-def flip_tiles(inst)
-  inst.each_with_object(Set.new) do |inst, s|
-    if s.member?(inst)
-      s.delete(inst)
-    else
-      s.add(inst)
-    end
-  end
+  tile_set
 end
 
 Tile = Struct.new(:x, :y) do
@@ -46,52 +25,77 @@ Tile = Struct.new(:x, :y) do
     end
   end
 
-  def self.build(tokens)
+  def self.build(str)
     x,y=0,0
-    tokens.each do |t|
-      case t
-      when :w then x -= 1
-      when :e then x += 1
-      when :ne then y -= 1
-      when :nw then x -=1 and y -= 1
-      when :se then x += 1 and y += 1
-      when :sw then y += 1
+    i = 0
+    while i < str.length
+      tlen = str[i] == "w" || str[i] == "e" ? 1 : 2
+
+      case str[i, tlen]
+      when "w" then x -= 1
+      when "e" then x += 1
+      when "ne" then y -= 1
+      when "nw" then x -=1 and y -= 1
+      when "se" then x += 1 and y += 1
+      when "sw" then y += 1
+      else raise "WTF"
       end
+      i += tlen
     end
     new(x, y)
   end
 end
 
-def evolve(tiles)
-  candidates = Set.new
-  tiles.each do |tile|
-    candidates.add(tile)
-    tile.neighbors do |n|
-      candidates.add(n)
+class TileSet
+  attr_accessor :tiles
+
+  def initialize
+    @tiles = Set.new
+  end
+
+  def toggle(tile)
+    if tiles.member?(tile)
+      tiles.delete(tile)
+    else
+      tiles.add(tile)
     end
   end
 
-  n_tiles = Set.new
-  candidates.each do |tile|
-    neighbor_count = 0
-    tile.neighbors do |n|
-      neighbor_count += 1 if tiles.member?(n)
-    end
-    if tiles.member?(tile)
-      n_tiles << tile if neighbor_count.between?(1, 2)
-    else
-      n_tiles << tile if neighbor_count == 2
-    end
+  def length
+    tiles.length
   end
-  n_tiles
+
+  def evolve
+    candidates = Set.new
+    tiles.each do |tile|
+      candidates.add(tile)
+      tile.neighbors do |n|
+        candidates.add(n)
+      end
+    end
+
+    next_tiles = Set.new
+    candidates.each do |tile|
+      neighbor_count = 0
+      tile.neighbors do |n|
+        neighbor_count += 1 if tiles.member?(n)
+      end
+      if tiles.member?(tile)
+        next_tiles << tile if neighbor_count.between?(1, 2)
+      else
+        next_tiles << tile if neighbor_count == 2
+      end
+    end
+    self.tiles = next_tiles
+  end
 end
+
 
 return unless $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?("ruby-memory-profiler")
 
-input = parse_input(read_input)
+tile_set = parse_input(read_input)
 
-tiles = flip_tiles(input)
-puts tiles.length
+puts tile_set.length
 
-tiles = 100.times.reduce(tiles) { |tiles, _| evolve(tiles) }
-puts tiles.length
+100.times { tile_set.evolve }
+puts tile_set.length
