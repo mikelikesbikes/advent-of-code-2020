@@ -18,9 +18,9 @@ def parse_input(input)
 end
 
 Tile = Struct.new(:x, :y) do
-  NEIGHBOR_OFFSETS = [[-1, 0], [1, 0], [0, -1], [-1, -1], [1, 1], [0, 1]]
+  NEIGHBOR_OFFSETS = Hash["w", [-1, 0], "e", [1, 0], "ne", [0, -1], "nw", [-1, -1], "se", [1, 1], "sw", [0, 1]]
   def neighbors
-    NEIGHBOR_OFFSETS.each do |dx, dy|
+    NEIGHBOR_OFFSETS.each do |_, (dx, dy)|
       yield Tile.new(x + dx, y + dy)
     end
   end
@@ -30,16 +30,9 @@ Tile = Struct.new(:x, :y) do
     i = 0
     while i < str.length
       tlen = str[i] == "w" || str[i] == "e" ? 1 : 2
-
-      case str[i, tlen]
-      when "w" then x -= 1
-      when "e" then x += 1
-      when "ne" then y -= 1
-      when "nw" then x -=1 and y -= 1
-      when "se" then x += 1 and y += 1
-      when "sw" then y += 1
-      else raise "WTF"
-      end
+      dx, dy = NEIGHBOR_OFFSETS[str[i, tlen]]
+      x += dx
+      y += dy
       i += tlen
     end
     new(x, y)
@@ -69,21 +62,21 @@ class TileSet
     candidates = Set.new
     tiles.each do |tile|
       candidates.add(tile)
-      tile.neighbors do |n|
-        candidates.add(n)
+      tile.neighbors do |ntile|
+        candidates.add(ntile)
       end
     end
 
     next_tiles = Set.new
     candidates.each do |tile|
-      neighbor_count = 0
-      tile.neighbors do |n|
-        neighbor_count += 1 if tiles.member?(n)
+      count = 0
+      tile.neighbors do |ntile|
+        count += 1 if tiles.member?(ntile)
       end
       if tiles.member?(tile)
-        next_tiles << tile if neighbor_count.between?(1, 2)
+        next_tiles << tile if count.between?(1, 2)
       else
-        next_tiles << tile if neighbor_count == 2
+        next_tiles << tile if count == 2
       end
     end
     self.tiles = next_tiles
