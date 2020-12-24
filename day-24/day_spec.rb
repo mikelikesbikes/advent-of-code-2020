@@ -32,19 +32,42 @@ describe "day" do
   end
 
   it "should ..." do
-    p input
-    tiles = flip_tiles(input)
-    p tiles
-    expect(count_black(tiles)).to eq 10
+    expect(flip_tiles(input).length).to eq 10
+    expect(flip_tiles(actual_input).length).to eq 500
   end
 
   it "tokenizes tile directions" do
     expect(tokenize("sesenwnenenewseeswwswswwnenewsewsw")).to eq %i[se se nw ne ne ne w se e sw w sw sw w ne ne w se w sw]
   end
 
-  it "builds a canonical token list" do
-    expect(reduce_tokens(%i[se se nw ne ne ne w se e sw w sw sw w ne ne w se w sw])).to eq %i[se se w w w]
-    expect(reduce_tokens(%i[nw w sw e e])).to eq []
-    expect(reduce_tokens(%i[ne e e ne se nw nw w sw ne ne w nw w se w ne nw se sw e sw])).to eq [:ne, :ne, :nw, :w]
+  it "lives!" do
+    tiles = flip_tiles(input)
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 15
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 12
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 25
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 14
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 23
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 28
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 41
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 37
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 49
+    tiles = evolve(tiles)
+    expect(tiles.length).to eq 37
+
+    tiles = 90.times.reduce(tiles) { |tiles, _| evolve(tiles) }
+    expect(tiles.length).to eq 2208
+
+    tiles = flip_tiles(actual_input)
+    tiles = 100.times.reduce(tiles) { |tiles, _| evolve(tiles) }
+    expect(tiles.length).to eq 4280
   end
 end
