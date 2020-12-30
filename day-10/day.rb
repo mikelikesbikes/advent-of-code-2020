@@ -16,9 +16,10 @@ end
 
 ### CODE HERE ###
 def align_adapters(input)
-  jolts = input.sort
-  jolts.unshift(0)
-  jolts.push(jolts.last + 3)
+  input.sort.tap do |j|
+    j.unshift(0)
+    j.push(j.last + 3)
+  end
 end
 
 def differences(adapters)
@@ -31,12 +32,13 @@ def differences(adapters)
   end.reduce(&:*)
 end
 
-def configurations(adapters, i = 0, memo = {(adapters.length - 1) => 1})
-  return memo[i] if memo[i]
-
-  memo[i] = [1, 2, 3].filter do |j|
-    i + j < adapters.length && adapters[i+j] - adapters[i] <= 3
-  end.sum { |j| configurations(adapters, i+j, memo) }
+def configurations(adapters, i = 0)
+  Hash
+    .new { |h, i| h[i] = [i+1, i+2, i+3].sum { |j| j < adapters.length && adapters[j] - adapters[i] <= 3 ? h[j] : 0 } }
+    .yield_self { |memo|
+      memo[adapters.length - 1] = 1
+      memo[0]
+    }
 end
 
 return unless $PROGRAM_NAME == __FILE__
