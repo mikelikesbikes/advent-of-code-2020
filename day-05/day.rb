@@ -9,9 +9,11 @@ def read_input(filename = "input.txt")
   end
 end
 
+SEAT_PARTS="FLBR"
+SEAT_PARTS_TO_INT="0011"
 def parse_input(input)
   input.split("\n").map do |line|
-    line.gsub(/[FL]/, "0").gsub(/[BR]/, "1").to_i(2)
+    line.tr(SEAT_PARTS, SEAT_PARTS_TO_INT).to_i(2)
   end
 end
 

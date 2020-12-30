@@ -184,8 +184,10 @@ class Camera
     @edges_memo = {}
   end
 
+  IMAGE_PARTS = ".#"
+  IMAGE_PARTS_TO_INT="01"
   def as_int(str)
-    Integer(str.gsub(PERIOD, ZERO).gsub(HASH, ONE), 2)
+    Integer(str.tr(IMAGE_PARTS, IMAGE_PARTS_TO_INT), 2)
   end
 end
 
