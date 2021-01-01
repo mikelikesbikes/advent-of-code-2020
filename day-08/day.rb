@@ -10,13 +10,21 @@ def read_input(filename = "input.txt")
 end
 
 def parse_input(input)
-  input.split("\n").map do |line|
+  instructions = input.split("\n").map do |line|
     Instruction.new(line[0..2], Integer(line[4..-1]))
   end
+  Console.new(instructions)
 end
 
 Instruction = Struct.new(:op, :arg)
 Console = Struct.new(:instructions, :acc, :ip, :visited) do
+  def initialize(*)
+    super
+    self.acc ||= 0
+    self.ip ||= 0
+    self.visited ||= Set.new
+  end
+
   def step(&block)
     throw :done if ip >= self.instructions.length
     block.call(self) if block
@@ -71,8 +79,7 @@ end
 
 return unless $PROGRAM_NAME == __FILE__
 
-input = parse_input(read_input)
-console = Console.new(input, 0, 0, Set.new)
+console = parse_input(read_input)
 
 puts console.break_at_loop.acc
 puts console.repair.acc
