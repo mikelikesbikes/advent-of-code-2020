@@ -51,11 +51,17 @@ describe "day" do
     INPUT
   end
 
+  let(:actual_input) do
+    parse_input(File.read("input.txt"))
+  end
+
   it "should count valid passports" do
     expect(valid_passports(input, strict: false)).to eq 2
+    expect(valid_passports(actual_input, strict: false)).to eq 196
   end
 
   it "should count valid passports in strict mode" do
     expect(valid_passports(p2_input)).to eq 4
+    expect(valid_passports(actual_input)).to eq 114
   end
 end
