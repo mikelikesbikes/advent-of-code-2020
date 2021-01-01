@@ -10,11 +10,17 @@ describe "Day1" do
     INPUT
   end
 
+  let(:actual_input) do
+    parse_input(File.read("input.txt"))
+  end
+
   it "should validate ranged passwords" do
     expect(valid_passwords(input)).to eq 2
+    expect(valid_passwords(actual_input)).to eq 586
   end
 
   it "should validate positional passwords" do
     expect(valid_passwords_new(input)).to eq 1
+    expect(valid_passwords_new(actual_input)).to eq 352
   end
 end
