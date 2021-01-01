@@ -12,9 +12,11 @@ end
 SEAT_PARTS="FLBR"
 SEAT_PARTS_TO_INT="0011"
 def parse_input(input)
-  input.split("\n").map do |line|
-    line.tr(SEAT_PARTS, SEAT_PARTS_TO_INT).to_i(2)
+  s = Set.new
+  input.split("\n").each do |line|
+    s << line.tr(SEAT_PARTS, SEAT_PARTS_TO_INT).to_i(2)
   end
+  s
 end
 
 
@@ -24,15 +26,7 @@ def max_seat_id(seats)
 end
 
 def find_seat(seats)
-  seats.each_with_object(Set.new) do |seat, s|
-    if s.member?(seat - 2)
-      return seat - 1
-    elsif s.member?(seat + 2)
-      return seat + 1
-    else
-      s << seat
-    end
-  end
+  seats.find { |s| seats.member?(s+2) && !seats.member?(s+1) } + 1
 end
 
 return unless $PROGRAM_NAME == __FILE__
