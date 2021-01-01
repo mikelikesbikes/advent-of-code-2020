@@ -27,12 +27,18 @@ describe "day" do
     INPUT
   end
 
+  let(:actual_input) do
+    parse_input(File.read("input.txt"))
+  end
+
   it "should ..." do
     expect(bag_colors(input, "shiny gold")).to eq 4
+    expect(bag_colors(actual_input, "shiny gold")).to eq 213
   end
 
   it "should calculate bag requirements" do
     expect(bag_count(input, "shiny gold")).to eq 32
     expect(bag_count(input2, "shiny gold")).to eq 126
+    expect(bag_count(actual_input, "shiny gold")).to eq 38426
   end
 end
